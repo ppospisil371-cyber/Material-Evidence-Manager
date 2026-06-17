@@ -3,20 +3,29 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Evidence materiálu plynovodních přípojek
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: categories
+    description: Sections/categories of materials
+  - name: materials
+    description: Individual materials and components
+  - name: connections
+    description: Gas pipeline connections
+  - name: items
+    description: Material usage per connection
+  - name: exports
+    description: Export operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +33,373 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /categories/{id}:
+    patch:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /categories/reorder:
+    post:
+      operationId: reorderCategories
+      tags: [categories]
+      summary: Reorder categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderInput"
+      responses:
+        "200":
+          description: Reordered
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /materials:
+    get:
+      operationId: listMaterials
+      tags: [materials]
+      summary: List all materials
+      parameters:
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of materials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Material"
+    post:
+      operationId: createMaterial
+      tags: [materials]
+      summary: Create a material
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaterialInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Material"
+
+  /materials/{id}:
+    patch:
+      operationId: updateMaterial
+      tags: [materials]
+      summary: Update a material
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaterialUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Material"
+    delete:
+      operationId: deleteMaterial
+      tags: [materials]
+      summary: Delete a material
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /connections:
+    get:
+      operationId: listConnections
+      tags: [connections]
+      summary: List all connections
+      responses:
+        "200":
+          description: List of connections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Connection"
+    post:
+      operationId: createConnection
+      tags: [connections]
+      summary: Create a new connection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Connection"
+
+  /connections/{id}:
+    get:
+      operationId: getConnection
+      tags: [connections]
+      summary: Get a connection with its items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Connection detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionDetail"
+    patch:
+      operationId: updateConnection
+      tags: [connections]
+      summary: Update a connection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectionUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Connection"
+    delete:
+      operationId: deleteConnection
+      tags: [connections]
+      summary: Delete a connection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /connections/{id}/copy:
+    post:
+      operationId: copyConnection
+      tags: [connections]
+      summary: Copy an existing connection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectionCopyInput"
+      responses:
+        "201":
+          description: Copied connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Connection"
+
+  /connections/{id}/items:
+    get:
+      operationId: listConnectionItems
+      tags: [items]
+      summary: List items for a connection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of connection items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConnectionItem"
+    put:
+      operationId: upsertConnectionItems
+      tags: [items]
+      summary: Save all items for a connection (upsert)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectionItemsBatch"
+      responses:
+        "200":
+          description: Saved items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConnectionItem"
+
+  /summary:
+    get:
+      operationId: getSummary
+      tags: [exports]
+      summary: Get aggregated material summary across all connections
+      responses:
+        "200":
+          description: Summary data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+
+  /export/xls:
+    get:
+      operationId: exportXls
+      tags: [exports]
+      summary: Export all data as XLS
+      responses:
+        "200":
+          description: XLS file
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /export/pdf:
+    get:
+      operationId: exportPdf
+      tags: [exports]
+      summary: Export all data as PDF
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +410,221 @@ components:
       required:
         - status
 
+    Category:
+      type: object
+      required: [id, name, order, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        order:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        order:
+          type: integer
+
+    CategoryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        order:
+          type: integer
+
+    ReorderInput:
+      type: object
+      required: [ids]
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+
+    Material:
+      type: object
+      required: [id, categoryId, name, unit, order, createdAt]
+      properties:
+        id:
+          type: integer
+        categoryId:
+          type: integer
+        name:
+          type: string
+        unit:
+          type: string
+        description:
+          type: ["string", "null"]
+        order:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    MaterialInput:
+      type: object
+      required: [categoryId, name, unit]
+      properties:
+        categoryId:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+        unit:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        order:
+          type: integer
+
+    MaterialUpdate:
+      type: object
+      properties:
+        categoryId:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+        unit:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        order:
+          type: integer
+
+    Connection:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        note:
+          type: ["string", "null"]
+        copiedFromId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ConnectionInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        note:
+          type: string
+
+    ConnectionUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        note:
+          type: string
+
+    ConnectionCopyInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        note:
+          type: string
+
+    ConnectionItem:
+      type: object
+      required: [id, connectionId, materialId, quantity]
+      properties:
+        id:
+          type: integer
+        connectionId:
+          type: integer
+        materialId:
+          type: integer
+        quantity:
+          type: number
+
+    ConnectionItemsBatch:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConnectionItemInput"
+
+    ConnectionItemInput:
+      type: object
+      required: [materialId, quantity]
+      properties:
+        materialId:
+          type: integer
+        quantity:
+          type: number
+
+    ConnectionDetail:
+      type: object
+      required: [id, name, createdAt, items]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        note:
+          type: ["string", "null"]
+        copiedFromId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConnectionItem"
+
+    SummaryRow:
+      type: object
+      required: [materialId, materialName, unit, categoryId, categoryName, totalQuantity]
+      properties:
+        materialId:
+          type: integer
+        materialName:
+          type: string
+        unit:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        totalQuantity:
+          type: number
+
+    Summary:
+      type: object
+      required: [rows, connectionCount]
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/SummaryRow"
+        connectionCount:
+          type: integer
