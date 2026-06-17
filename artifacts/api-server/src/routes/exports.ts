@@ -1,30 +1,41 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { connectionsTable, connectionItemsTable, materialsTable, categoriesTable } from "@workspace/db";
-import { eq, asc, desc } from "drizzle-orm";
+import { eq, asc, inArray } from "drizzle-orm";
 import * as XLSX from "xlsx";
 import PDFDocument from "pdfkit";
 
 const router = Router();
 
-async function buildExportData() {
-  const connections = await db.select().from(connectionsTable).orderBy(asc(connectionsTable.name));
+async function buildExportData(stavbaId?: number) {
+  let connectionsQuery = db.select().from(connectionsTable).orderBy(asc(connectionsTable.name)).$dynamic();
+  if (stavbaId !== undefined && !isNaN(stavbaId)) {
+    connectionsQuery = connectionsQuery.where(eq(connectionsTable.stavbaId, stavbaId));
+  }
+  const connections = await connectionsQuery;
+  const connectionIds = connections.map((c) => c.id);
+
   const cats = await db.select().from(categoriesTable).orderBy(asc(categoriesTable.order));
   const materials = await db.select().from(materialsTable).orderBy(asc(materialsTable.order));
-  const allItems = await db.select().from(connectionItemsTable);
 
-  const catMap = new Map(cats.map((c) => [c.id, c]));
-  const matMap = new Map(materials.map((m) => [m.id, m]));
+  const allItems =
+    connectionIds.length > 0
+      ? await db
+          .select()
+          .from(connectionItemsTable)
+          .where(inArray(connectionItemsTable.connectionId, connectionIds))
+      : [];
 
-  return { connections, cats, materials, allItems, catMap, matMap };
+  return { connections, cats, materials, allItems };
 }
 
-router.get("/xls", async (_req, res) => {
-  const { connections, cats, materials, allItems, catMap, matMap } = await buildExportData();
+router.get("/xls", async (req, res) => {
+  const rawStavbaId = req.query.stavbaId;
+  const stavbaId = rawStavbaId !== undefined ? parseInt(rawStavbaId as string) : undefined;
+  const { connections, cats, materials, allItems } = await buildExportData(stavbaId);
 
   const wb = XLSX.utils.book_new();
 
-  // Summary sheet
   const totalByMaterial = new Map<number, number>();
   for (const item of allItems) {
     totalByMaterial.set(item.materialId, (totalByMaterial.get(item.materialId) ?? 0) + (item.quantity ?? 0));
@@ -45,7 +56,6 @@ router.get("/xls", async (_req, res) => {
   const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
   XLSX.utils.book_append_sheet(wb, wsSummary, "Souhrn");
 
-  // Per-connection sheets
   for (const conn of connections) {
     const connItems = allItems.filter((i) => i.connectionId === conn.id);
     const rows: (string | number)[][] = [
@@ -72,8 +82,10 @@ router.get("/xls", async (_req, res) => {
   res.send(buf);
 });
 
-router.get("/pdf", async (_req, res) => {
-  const { connections, cats, materials, allItems } = await buildExportData();
+router.get("/pdf", async (req, res) => {
+  const rawStavbaId = req.query.stavbaId;
+  const stavbaId = rawStavbaId !== undefined ? parseInt(rawStavbaId as string) : undefined;
+  const { connections, cats, materials, allItems } = await buildExportData(stavbaId);
 
   const doc = new PDFDocument({ margin: 40, size: "A4" });
   res.setHeader("Content-Type", "application/pdf");
@@ -132,7 +144,6 @@ router.get("/pdf", async (_req, res) => {
       doc.fontSize(9).fillColor("#999").text("  Žádné položky");
     }
     doc.moveDown(0.8);
-
     if (doc.y > 700) doc.addPage();
   }
 

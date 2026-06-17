@@ -12,6 +12,8 @@ export interface Connection {
   /** @nullable */
   note?: string | null;
   /** @nullable */
+  stavbaId?: number | null;
+  /** @nullable */
   copiedFromId?: number | null;
   createdAt: Date;
 }

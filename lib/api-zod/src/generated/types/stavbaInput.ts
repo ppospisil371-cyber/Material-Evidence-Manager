@@ -6,9 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ConnectionCopyInput {
+export interface StavbaInput {
   /** @minLength 1 */
   name: string;
   note?: string;
-  stavbaId?: number;
 }

@@ -17,6 +17,76 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary List all construction sites
+ */
+export const ListStavbyResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListStavbyResponse = zod.array(ListStavbyResponseItem)
+
+
+/**
+ * @summary Create a stavba
+ */
+
+
+
+export const CreateStavbaBody = zod.object({
+  "name": zod.string().min(1),
+  "note": zod.string().optional()
+})
+
+
+/**
+ * @summary Get a stavba
+ */
+export const GetStavbaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetStavbaResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a stavba
+ */
+export const UpdateStavbaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const UpdateStavbaBody = zod.object({
+  "name": zod.string().min(1),
+  "note": zod.string().optional()
+})
+
+export const UpdateStavbaResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a stavba
+ */
+export const DeleteStavbaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary List all categories
  */
 export const ListCategoriesResponseItem = zod.object({
@@ -163,10 +233,15 @@ export const DeleteMaterialParams = zod.object({
 /**
  * @summary List all connections
  */
+export const ListConnectionsQueryParams = zod.object({
+  "stavbaId": zod.coerce.number().optional()
+})
+
 export const ListConnectionsResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "note": zod.string().nullish(),
+  "stavbaId": zod.number().nullish(),
   "copiedFromId": zod.number().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -181,7 +256,8 @@ export const ListConnectionsResponse = zod.array(ListConnectionsResponseItem)
 
 export const CreateConnectionBody = zod.object({
   "name": zod.string().min(1),
-  "note": zod.string().optional()
+  "note": zod.string().optional(),
+  "stavbaId": zod.number().optional()
 })
 
 
@@ -196,6 +272,7 @@ export const GetConnectionResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "note": zod.string().nullish(),
+  "stavbaId": zod.number().nullish(),
   "copiedFromId": zod.number().nullish(),
   "createdAt": zod.coerce.date(),
   "items": zod.array(zod.object({
@@ -219,13 +296,15 @@ export const UpdateConnectionParams = zod.object({
 
 export const UpdateConnectionBody = zod.object({
   "name": zod.string().min(1).optional(),
-  "note": zod.string().optional()
+  "note": zod.string().optional(),
+  "stavbaId": zod.number().optional()
 })
 
 export const UpdateConnectionResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "note": zod.string().nullish(),
+  "stavbaId": zod.number().nullish(),
   "copiedFromId": zod.number().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -251,7 +330,8 @@ export const CopyConnectionParams = zod.object({
 
 export const CopyConnectionBody = zod.object({
   "name": zod.string().min(1),
-  "note": zod.string().optional()
+  "note": zod.string().optional(),
+  "stavbaId": zod.number().optional()
 })
 
 
@@ -295,8 +375,12 @@ export const UpsertConnectionItemsResponse = zod.array(UpsertConnectionItemsResp
 
 
 /**
- * @summary Get aggregated material summary across all connections
+ * @summary Get aggregated material summary
  */
+export const GetSummaryQueryParams = zod.object({
+  "stavbaId": zod.coerce.number().optional()
+})
+
 export const GetSummaryResponse = zod.object({
   "rows": zod.array(zod.object({
   "materialId": zod.number(),
@@ -307,6 +391,22 @@ export const GetSummaryResponse = zod.object({
   "totalQuantity": zod.number()
 })),
   "connectionCount": zod.number()
+})
+
+
+/**
+ * @summary Export all data as XLS
+ */
+export const ExportXlsQueryParams = zod.object({
+  "stavbaId": zod.coerce.number().optional()
+})
+
+
+/**
+ * @summary Export all data as PDF
+ */
+export const ExportPdfQueryParams = zod.object({
+  "stavbaId": zod.coerce.number().optional()
 })
 
 

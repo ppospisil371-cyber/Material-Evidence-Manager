@@ -1,24 +1,35 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { connectionsTable, connectionItemsTable, materialsTable, categoriesTable } from "@workspace/db";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, inArray } from "drizzle-orm";
 
 const router = Router();
 
-router.get("/", async (_req, res) => {
-  const connections = await db.select().from(connectionsTable);
-  const allItems = await db
-    .select({
-      connectionItemId: connectionItemsTable.id,
-      connectionId: connectionItemsTable.connectionId,
-      materialId: connectionItemsTable.materialId,
-      quantity: connectionItemsTable.quantity,
-      materialName: materialsTable.name,
-      unit: materialsTable.unit,
-      categoryId: materialsTable.categoryId,
-    })
-    .from(connectionItemsTable)
-    .innerJoin(materialsTable, eq(connectionItemsTable.materialId, materialsTable.id));
+router.get("/", async (req, res) => {
+  const rawStavbaId = req.query.stavbaId;
+  const stavbaId = rawStavbaId !== undefined ? parseInt(rawStavbaId as string) : undefined;
+
+  let connectionsQuery = db.select().from(connectionsTable).$dynamic();
+  if (stavbaId !== undefined && !isNaN(stavbaId)) {
+    connectionsQuery = connectionsQuery.where(eq(connectionsTable.stavbaId, stavbaId));
+  }
+  const connections = await connectionsQuery;
+  const connectionIds = connections.map((c) => c.id);
+
+  const allItems =
+    connectionIds.length > 0
+      ? await db
+          .select({
+            materialId: connectionItemsTable.materialId,
+            quantity: connectionItemsTable.quantity,
+            materialName: materialsTable.name,
+            unit: materialsTable.unit,
+            categoryId: materialsTable.categoryId,
+          })
+          .from(connectionItemsTable)
+          .innerJoin(materialsTable, eq(connectionItemsTable.materialId, materialsTable.id))
+          .where(inArray(connectionItemsTable.connectionId, connectionIds))
+      : [];
 
   const cats = await db.select().from(categoriesTable).orderBy(asc(categoriesTable.order));
   const catMap = new Map(cats.map((c) => [c.id, c.name]));

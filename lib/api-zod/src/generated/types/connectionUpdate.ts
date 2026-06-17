@@ -10,4 +10,5 @@ export interface ConnectionUpdate {
   /** @minLength 1 */
   name?: string;
   note?: string;
+  stavbaId?: number;
 }

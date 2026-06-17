@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
+import { StavbaProvider } from "@/context/stavba-context";
 import Dashboard from "@/pages/dashboard";
 import NewConnection from "@/pages/new-connection";
 import ConnectionDetail from "@/pages/connection-detail";
@@ -32,7 +33,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <StavbaProvider>
+            <Router />
+          </StavbaProvider>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

@@ -9,6 +9,20 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface Stavba {
+  id: number;
+  name: string;
+  /** @nullable */
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface StavbaInput {
+  /** @minLength 1 */
+  name: string;
+  note?: string;
+}
+
 export interface Category {
   id: number;
   name: string;
@@ -69,6 +83,8 @@ export interface Connection {
   /** @nullable */
   note?: string | null;
   /** @nullable */
+  stavbaId?: number | null;
+  /** @nullable */
   copiedFromId?: number | null;
   createdAt: string;
 }
@@ -77,18 +93,21 @@ export interface ConnectionInput {
   /** @minLength 1 */
   name: string;
   note?: string;
+  stavbaId?: number;
 }
 
 export interface ConnectionUpdate {
   /** @minLength 1 */
   name?: string;
   note?: string;
+  stavbaId?: number;
 }
 
 export interface ConnectionCopyInput {
   /** @minLength 1 */
   name: string;
   note?: string;
+  stavbaId?: number;
 }
 
 export interface ConnectionItem {
@@ -113,6 +132,8 @@ export interface ConnectionDetail {
   /** @nullable */
   note?: string | null;
   /** @nullable */
+  stavbaId?: number | null;
+  /** @nullable */
   copiedFromId?: number | null;
   createdAt: string;
   items: ConnectionItem[];
@@ -134,5 +155,21 @@ export interface Summary {
 
 export type ListMaterialsParams = {
 categoryId?: number;
+};
+
+export type ListConnectionsParams = {
+stavbaId?: number;
+};
+
+export type GetSummaryParams = {
+stavbaId?: number;
+};
+
+export type ExportXlsParams = {
+stavbaId?: number;
+};
+
+export type ExportPdfParams = {
+stavbaId?: number;
 };
 

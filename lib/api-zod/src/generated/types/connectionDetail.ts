@@ -13,6 +13,8 @@ export interface ConnectionDetail {
   /** @nullable */
   note?: string | null;
   /** @nullable */
+  stavbaId?: number | null;
+  /** @nullable */
   copiedFromId?: number | null;
   createdAt: Date;
   items: ConnectionItem[];

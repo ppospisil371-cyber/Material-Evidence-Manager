@@ -10,4 +10,5 @@ export interface ConnectionInput {
   /** @minLength 1 */
   name: string;
   note?: string;
+  stavbaId?: number;
 }

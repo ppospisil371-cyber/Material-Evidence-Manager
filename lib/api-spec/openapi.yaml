@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: stavby
+    description: Construction sites
   - name: categories
     description: Sections/categories of materials
   - name: materials
@@ -33,6 +35,93 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /stavby:
+    get:
+      operationId: listStavby
+      tags: [stavby]
+      summary: List all construction sites
+      responses:
+        "200":
+          description: List of stavby
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Stavba"
+    post:
+      operationId: createStavba
+      tags: [stavby]
+      summary: Create a stavba
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StavbaInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stavba"
+
+  /stavby/{id}:
+    get:
+      operationId: getStavba
+      tags: [stavby]
+      summary: Get a stavba
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Stavba
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stavba"
+    patch:
+      operationId: updateStavba
+      tags: [stavby]
+      summary: Update a stavba
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StavbaInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stavba"
+    delete:
+      operationId: deleteStavba
+      tags: [stavby]
+      summary: Delete a stavba
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
 
   /categories:
     get:
@@ -206,6 +295,12 @@ paths:
       operationId: listConnections
       tags: [connections]
       summary: List all connections
+      parameters:
+        - name: stavbaId
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: List of connections
@@ -363,7 +458,13 @@ paths:
     get:
       operationId: getSummary
       tags: [exports]
-      summary: Get aggregated material summary across all connections
+      summary: Get aggregated material summary
+      parameters:
+        - name: stavbaId
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: Summary data
@@ -377,6 +478,12 @@ paths:
       operationId: exportXls
       tags: [exports]
       summary: Export all data as XLS
+      parameters:
+        - name: stavbaId
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: XLS file
@@ -391,6 +498,12 @@ paths:
       operationId: exportPdf
       tags: [exports]
       summary: Export all data as PDF
+      parameters:
+        - name: stavbaId
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: PDF file
@@ -409,6 +522,30 @@ components:
           type: string
       required:
         - status
+
+    Stavba:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    StavbaInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        note:
+          type: string
 
     Category:
       type: object
@@ -515,6 +652,8 @@ components:
           type: string
         note:
           type: ["string", "null"]
+        stavbaId:
+          type: ["integer", "null"]
         copiedFromId:
           type: ["integer", "null"]
         createdAt:
@@ -530,6 +669,8 @@ components:
           minLength: 1
         note:
           type: string
+        stavbaId:
+          type: integer
 
     ConnectionUpdate:
       type: object
@@ -539,6 +680,8 @@ components:
           minLength: 1
         note:
           type: string
+        stavbaId:
+          type: integer
 
     ConnectionCopyInput:
       type: object
@@ -549,6 +692,8 @@ components:
           minLength: 1
         note:
           type: string
+        stavbaId:
+          type: integer
 
     ConnectionItem:
       type: object
@@ -591,6 +736,8 @@ components:
           type: string
         note:
           type: ["string", "null"]
+        stavbaId:
+          type: ["integer", "null"]
         copiedFromId:
           type: ["integer", "null"]
         createdAt:

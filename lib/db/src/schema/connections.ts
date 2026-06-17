@@ -1,11 +1,13 @@
 import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { stavbyTable } from "./stavby";
 
 export const connectionsTable = pgTable("connections", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   note: text("note"),
+  stavbaId: integer("stavba_id").references(() => stavbyTable.id, { onDelete: "cascade" }),
   copiedFromId: integer("copied_from_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

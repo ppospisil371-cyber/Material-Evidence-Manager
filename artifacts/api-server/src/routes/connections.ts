@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { connectionsTable, connectionItemsTable, materialsTable, categoriesTable } from "@workspace/db";
+import { connectionsTable, connectionItemsTable } from "@workspace/db";
 import { eq, asc, desc } from "drizzle-orm";
 import {
   CreateConnectionBody,
@@ -13,15 +13,18 @@ import {
   ListConnectionItemsParams,
   UpsertConnectionItemsParams,
   UpsertConnectionItemsBody,
+  ListConnectionsQueryParams,
 } from "@workspace/api-zod";
 
 const router = Router();
 
-router.get("/", async (_req, res) => {
-  const connections = await db
-    .select()
-    .from(connectionsTable)
-    .orderBy(desc(connectionsTable.createdAt));
+router.get("/", async (req, res) => {
+  const query = ListConnectionsQueryParams.parse(req.query);
+  let q = db.select().from(connectionsTable).orderBy(asc(connectionsTable.name)).$dynamic();
+  if (query.stavbaId !== undefined) {
+    q = q.where(eq(connectionsTable.stavbaId, query.stavbaId));
+  }
+  const connections = await q;
   res.json(connections);
 });
 
@@ -29,7 +32,7 @@ router.post("/", async (req, res) => {
   const body = CreateConnectionBody.parse(req.body);
   const [created] = await db
     .insert(connectionsTable)
-    .values({ name: body.name, note: body.note ?? null })
+    .values({ name: body.name, note: body.note ?? null, stavbaId: body.stavbaId ?? null })
     .returning();
   res.status(201).json(created);
 });
@@ -51,6 +54,7 @@ router.patch("/:id", async (req, res) => {
   const updates: Record<string, unknown> = {};
   if (body.name !== undefined) updates.name = body.name;
   if (body.note !== undefined) updates.note = body.note;
+  if (body.stavbaId !== undefined) updates.stavbaId = body.stavbaId;
   const [updated] = await db
     .update(connectionsTable)
     .set(updates)
@@ -73,7 +77,12 @@ router.post("/:id/copy", async (req, res) => {
   if (!source) return res.status(404).json({ error: "Not found" });
   const [newConn] = await db
     .insert(connectionsTable)
-    .values({ name: body.name, note: body.note ?? null, copiedFromId: id })
+    .values({
+      name: body.name,
+      note: body.note ?? null,
+      stavbaId: body.stavbaId ?? source.stavbaId ?? null,
+      copiedFromId: id,
+    })
     .returning();
   const sourceItems = await db
     .select()

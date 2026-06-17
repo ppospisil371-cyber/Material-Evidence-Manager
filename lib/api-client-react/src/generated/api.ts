@@ -30,12 +30,18 @@ import type {
   ConnectionItem,
   ConnectionItemsBatch,
   ConnectionUpdate,
+  ExportPdfParams,
+  ExportXlsParams,
+  GetSummaryParams,
   HealthStatus,
+  ListConnectionsParams,
   ListMaterialsParams,
   Material,
   MaterialInput,
   MaterialUpdate,
   ReorderInput,
+  Stavba,
+  StavbaInput,
   Summary
 } from './api.schemas';
 
@@ -127,6 +133,373 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+
+export const getListStavbyUrl = () => {
+
+
+
+
+  return `/api/stavby`
+}
+
+/**
+ * @summary List all construction sites
+ */
+export const listStavby = async ( options?: RequestInit): Promise<Stavba[]> => {
+
+  return customFetch<Stavba[]>(getListStavbyUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListStavbyQueryKey = () => {
+    return [
+    `/api/stavby`
+    ] as const;
+    }
+
+
+export const getListStavbyQueryOptions = <TData = Awaited<ReturnType<typeof listStavby>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listStavby>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListStavbyQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStavby>>> = ({ signal }) => listStavby({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listStavby>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListStavbyQueryResult = NonNullable<Awaited<ReturnType<typeof listStavby>>>
+export type ListStavbyQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all construction sites
+ */
+
+export function useListStavby<TData = Awaited<ReturnType<typeof listStavby>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listStavby>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListStavbyQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateStavbaUrl = () => {
+
+
+
+
+  return `/api/stavby`
+}
+
+/**
+ * @summary Create a stavba
+ */
+export const createStavba = async (stavbaInput: StavbaInput, options?: RequestInit): Promise<Stavba> => {
+
+  return customFetch<Stavba>(getCreateStavbaUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      stavbaInput,)
+  }
+);}
+
+
+
+
+export const getCreateStavbaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStavba>>, TError,{data: BodyType<StavbaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStavba>>, TError,{data: BodyType<StavbaInput>}, TContext> => {
+
+const mutationKey = ['createStavba'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStavba>>, {data: BodyType<StavbaInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createStavba(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStavbaMutationResult = NonNullable<Awaited<ReturnType<typeof createStavba>>>
+    export type CreateStavbaMutationBody = BodyType<StavbaInput>
+    export type CreateStavbaMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a stavba
+ */
+export const useCreateStavba = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStavba>>, TError,{data: BodyType<StavbaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createStavba>>,
+        TError,
+        {data: BodyType<StavbaInput>},
+        TContext
+      > => {
+      return useMutation(getCreateStavbaMutationOptions(options));
+    }
+
+export const getGetStavbaUrl = (id: number,) => {
+
+
+
+
+  return `/api/stavby/${id}`
+}
+
+/**
+ * @summary Get a stavba
+ */
+export const getStavba = async (id: number, options?: RequestInit): Promise<Stavba> => {
+
+  return customFetch<Stavba>(getGetStavbaUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStavbaQueryKey = (id: number,) => {
+    return [
+    `/api/stavby/${id}`
+    ] as const;
+    }
+
+
+export const getGetStavbaQueryOptions = <TData = Awaited<ReturnType<typeof getStavba>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStavba>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStavbaQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStavba>>> = ({ signal }) => getStavba(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStavba>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStavbaQueryResult = NonNullable<Awaited<ReturnType<typeof getStavba>>>
+export type GetStavbaQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get a stavba
+ */
+
+export function useGetStavba<TData = Awaited<ReturnType<typeof getStavba>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStavba>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStavbaQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateStavbaUrl = (id: number,) => {
+
+
+
+
+  return `/api/stavby/${id}`
+}
+
+/**
+ * @summary Update a stavba
+ */
+export const updateStavba = async (id: number,
+    stavbaInput: StavbaInput, options?: RequestInit): Promise<Stavba> => {
+
+  return customFetch<Stavba>(getUpdateStavbaUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      stavbaInput,)
+  }
+);}
+
+
+
+
+export const getUpdateStavbaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStavba>>, TError,{id: number;data: BodyType<StavbaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStavba>>, TError,{id: number;data: BodyType<StavbaInput>}, TContext> => {
+
+const mutationKey = ['updateStavba'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStavba>>, {id: number;data: BodyType<StavbaInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateStavba(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStavbaMutationResult = NonNullable<Awaited<ReturnType<typeof updateStavba>>>
+    export type UpdateStavbaMutationBody = BodyType<StavbaInput>
+    export type UpdateStavbaMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a stavba
+ */
+export const useUpdateStavba = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStavba>>, TError,{id: number;data: BodyType<StavbaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateStavba>>,
+        TError,
+        {id: number;data: BodyType<StavbaInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateStavbaMutationOptions(options));
+    }
+
+export const getDeleteStavbaUrl = (id: number,) => {
+
+
+
+
+  return `/api/stavby/${id}`
+}
+
+/**
+ * @summary Delete a stavba
+ */
+export const deleteStavba = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteStavbaUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteStavbaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStavba>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteStavba>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteStavba'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteStavba>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteStavba(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteStavbaMutationResult = NonNullable<Awaited<ReturnType<typeof deleteStavba>>>
+
+    export type DeleteStavbaMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a stavba
+ */
+export const useDeleteStavba = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteStavba>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteStavba>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteStavbaMutationOptions(options));
+    }
 
 export const getListCategoriesUrl = () => {
 
@@ -786,20 +1159,27 @@ export const useDeleteMaterial = <TError = ErrorType<unknown>,
       return useMutation(getDeleteMaterialMutationOptions(options));
     }
 
-export const getListConnectionsUrl = () => {
+export const getListConnectionsUrl = (params?: ListConnectionsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/connections`
+  return stringifiedParams.length > 0 ? `/api/connections?${stringifiedParams}` : `/api/connections`
 }
 
 /**
  * @summary List all connections
  */
-export const listConnections = async ( options?: RequestInit): Promise<Connection[]> => {
+export const listConnections = async (params?: ListConnectionsParams, options?: RequestInit): Promise<Connection[]> => {
 
-  return customFetch<Connection[]>(getListConnectionsUrl(),
+  return customFetch<Connection[]>(getListConnectionsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -812,23 +1192,23 @@ export const listConnections = async ( options?: RequestInit): Promise<Connectio
 
 
 
-export const getListConnectionsQueryKey = () => {
+export const getListConnectionsQueryKey = (params?: ListConnectionsParams,) => {
     return [
-    `/api/connections`
+    `/api/connections`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListConnectionsQueryOptions = <TData = Awaited<ReturnType<typeof listConnections>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConnections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListConnectionsQueryOptions = <TData = Awaited<ReturnType<typeof listConnections>>, TError = ErrorType<unknown>>(params?: ListConnectionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConnections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListConnectionsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListConnectionsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listConnections>>> = ({ signal }) => listConnections({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listConnections>>> = ({ signal }) => listConnections(params, { signal, ...requestOptions });
 
 
 
@@ -846,11 +1226,11 @@ export type ListConnectionsQueryError = ErrorType<unknown>
  */
 
 export function useListConnections<TData = Awaited<ReturnType<typeof listConnections>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConnections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ListConnectionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConnections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListConnectionsQueryOptions(options)
+  const queryOptions = getListConnectionsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1374,20 +1754,27 @@ export const useUpsertConnectionItems = <TError = ErrorType<unknown>,
       return useMutation(getUpsertConnectionItemsMutationOptions(options));
     }
 
-export const getGetSummaryUrl = () => {
+export const getGetSummaryUrl = (params?: GetSummaryParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/summary`
+  return stringifiedParams.length > 0 ? `/api/summary?${stringifiedParams}` : `/api/summary`
 }
 
 /**
- * @summary Get aggregated material summary across all connections
+ * @summary Get aggregated material summary
  */
-export const getSummary = async ( options?: RequestInit): Promise<Summary> => {
+export const getSummary = async (params?: GetSummaryParams, options?: RequestInit): Promise<Summary> => {
 
-  return customFetch<Summary>(getGetSummaryUrl(),
+  return customFetch<Summary>(getGetSummaryUrl(params),
   {
     ...options,
     method: 'GET'
@@ -1400,23 +1787,23 @@ export const getSummary = async ( options?: RequestInit): Promise<Summary> => {
 
 
 
-export const getGetSummaryQueryKey = () => {
+export const getGetSummaryQueryKey = (params?: GetSummaryParams,) => {
     return [
-    `/api/summary`
+    `/api/summary`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getSummary>>, TError = ErrorType<unknown>>(params?: GetSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetSummaryQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetSummaryQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSummary>>> = ({ signal }) => getSummary({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSummary>>> = ({ signal }) => getSummary(params, { signal, ...requestOptions });
 
 
 
@@ -1430,15 +1817,15 @@ export type GetSummaryQueryError = ErrorType<unknown>
 
 
 /**
- * @summary Get aggregated material summary across all connections
+ * @summary Get aggregated material summary
  */
 
 export function useGetSummary<TData = Awaited<ReturnType<typeof getSummary>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: GetSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getGetSummaryQueryOptions(options)
+  const queryOptions = getGetSummaryQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1451,20 +1838,27 @@ export function useGetSummary<TData = Awaited<ReturnType<typeof getSummary>>, TE
 
 
 
-export const getExportXlsUrl = () => {
+export const getExportXlsUrl = (params?: ExportXlsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/export/xls`
+  return stringifiedParams.length > 0 ? `/api/export/xls?${stringifiedParams}` : `/api/export/xls`
 }
 
 /**
  * @summary Export all data as XLS
  */
-export const exportXls = async ( options?: RequestInit): Promise<Blob> => {
+export const exportXls = async (params?: ExportXlsParams, options?: RequestInit): Promise<Blob> => {
 
-  return customFetch<Blob>(getExportXlsUrl(),
+  return customFetch<Blob>(getExportXlsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -1477,23 +1871,23 @@ export const exportXls = async ( options?: RequestInit): Promise<Blob> => {
 
 
 
-export const getExportXlsQueryKey = () => {
+export const getExportXlsQueryKey = (params?: ExportXlsParams,) => {
     return [
-    `/api/export/xls`
+    `/api/export/xls`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getExportXlsQueryOptions = <TData = Awaited<ReturnType<typeof exportXls>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportXls>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getExportXlsQueryOptions = <TData = Awaited<ReturnType<typeof exportXls>>, TError = ErrorType<unknown>>(params?: ExportXlsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportXls>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getExportXlsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getExportXlsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportXls>>> = ({ signal }) => exportXls({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportXls>>> = ({ signal }) => exportXls(params, { signal, ...requestOptions });
 
 
 
@@ -1511,11 +1905,11 @@ export type ExportXlsQueryError = ErrorType<unknown>
  */
 
 export function useExportXls<TData = Awaited<ReturnType<typeof exportXls>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportXls>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ExportXlsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportXls>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getExportXlsQueryOptions(options)
+  const queryOptions = getExportXlsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1528,20 +1922,27 @@ export function useExportXls<TData = Awaited<ReturnType<typeof exportXls>>, TErr
 
 
 
-export const getExportPdfUrl = () => {
+export const getExportPdfUrl = (params?: ExportPdfParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/export/pdf`
+  return stringifiedParams.length > 0 ? `/api/export/pdf?${stringifiedParams}` : `/api/export/pdf`
 }
 
 /**
  * @summary Export all data as PDF
  */
-export const exportPdf = async ( options?: RequestInit): Promise<Blob> => {
+export const exportPdf = async (params?: ExportPdfParams, options?: RequestInit): Promise<Blob> => {
 
-  return customFetch<Blob>(getExportPdfUrl(),
+  return customFetch<Blob>(getExportPdfUrl(params),
   {
     ...options,
     method: 'GET'
@@ -1554,23 +1955,23 @@ export const exportPdf = async ( options?: RequestInit): Promise<Blob> => {
 
 
 
-export const getExportPdfQueryKey = () => {
+export const getExportPdfQueryKey = (params?: ExportPdfParams,) => {
     return [
-    `/api/export/pdf`
+    `/api/export/pdf`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getExportPdfQueryOptions = <TData = Awaited<ReturnType<typeof exportPdf>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getExportPdfQueryOptions = <TData = Awaited<ReturnType<typeof exportPdf>>, TError = ErrorType<unknown>>(params?: ExportPdfParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getExportPdfQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getExportPdfQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportPdf>>> = ({ signal }) => exportPdf({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportPdf>>> = ({ signal }) => exportPdf(params, { signal, ...requestOptions });
 
 
 
@@ -1588,11 +1989,11 @@ export type ExportPdfQueryError = ErrorType<unknown>
  */
 
 export function useExportPdf<TData = Awaited<ReturnType<typeof exportPdf>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ExportPdfParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getExportPdfQueryOptions(options)
+  const queryOptions = getExportPdfQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
