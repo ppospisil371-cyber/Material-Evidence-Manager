@@ -104,6 +104,8 @@ function CategorySection({
   onDeleteMaterial: (id: number) => void;
   onReorderMaterials: (categoryId: number, ids: number[]) => void;
 }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: category.id });
+
   const [open, setOpen] = useState(true);
   const [newMatState, setNewMatState] = useState({ name: "", unit: "", desc: "" });
   const [localOrder, setLocalOrder] = useState<number[] | null>(null);
@@ -153,16 +155,33 @@ function CategorySection({
     }
   };
 
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   return (
-    <div className="border bg-card rounded-lg shadow-sm overflow-hidden">
-      <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted/30 transition-colors"
-        onClick={() => setOpen((o) => !o)}
-      >
-        <div className="flex items-center gap-3">
-          {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-          <span className="font-semibold text-base">{category.name}</span>
-          <span className="text-xs text-muted-foreground">({materials.length} položek)</span>
+    <div ref={setNodeRef} style={style} className="border bg-card rounded-lg shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between pr-4 py-3 hover:bg-muted/30 transition-colors">
+        <div className="flex items-center gap-1 flex-1 min-w-0">
+          <span
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground transition-colors px-2 shrink-0"
+            title="Přetáhnout pro změnu pořadí kategorií"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="w-4 h-4" />
+          </span>
+          <div
+            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
+            <span className="font-semibold text-base truncate">{category.name}</span>
+            <span className="text-xs text-muted-foreground shrink-0">({materials.length} položek)</span>
+          </div>
         </div>
         <Button
           variant="ghost"
@@ -356,15 +375,14 @@ export default function DatabasePage() {
                 .filter((m) => m.categoryId === category.id)
                 .sort((a, b) => a.order - b.order);
               return (
-                <SortableCategoryWrapper key={category.id} category={category}>
-                  <CategorySection
-                    category={category}
-                    materials={catMaterials}
-                    onDeleteCategory={handleDeleteCategory}
-                    onDeleteMaterial={handleDeleteMaterial}
-                    onReorderMaterials={handleReorderMaterials}
-                  />
-                </SortableCategoryWrapper>
+                <CategorySection
+                  key={category.id}
+                  category={category}
+                  materials={catMaterials}
+                  onDeleteCategory={handleDeleteCategory}
+                  onDeleteMaterial={handleDeleteMaterial}
+                  onReorderMaterials={handleReorderMaterials}
+                />
               );
             })}
           </div>
@@ -374,22 +392,3 @@ export default function DatabasePage() {
   );
 }
 
-function SortableCategoryWrapper({
-  category,
-  children,
-}: {
-  category: Category;
-  children: React.ReactNode;
-}) {
-  const { setNodeRef, transform, transition, isDragging } = useSortable({ id: category.id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-  return (
-    <div ref={setNodeRef} style={style}>
-      {children}
-    </div>
-  );
-}
