@@ -14,18 +14,29 @@ import {
   UpsertConnectionItemsParams,
   UpsertConnectionItemsBody,
   ListConnectionsQueryParams,
+  ReorderConnectionsBody,
 } from "@workspace/api-zod";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
   const query = ListConnectionsQueryParams.parse(req.query);
-  let q = db.select().from(connectionsTable).orderBy(asc(connectionsTable.name)).$dynamic();
+  let q = db.select().from(connectionsTable).orderBy(asc(connectionsTable.order), asc(connectionsTable.name)).$dynamic();
   if (query.stavbaId !== undefined) {
     q = q.where(eq(connectionsTable.stavbaId, query.stavbaId));
   }
   const connections = await q;
   res.json(connections);
+});
+
+router.post("/reorder", async (req, res) => {
+  const { ids } = ReorderConnectionsBody.parse(req.body);
+  const updated = await Promise.all(
+    ids.map((id, index) =>
+      db.update(connectionsTable).set({ order: index }).where(eq(connectionsTable.id, id)).returning().then((r) => r[0])
+    )
+  );
+  res.json(updated.filter(Boolean));
 });
 
 router.post("/", async (req, res) => {

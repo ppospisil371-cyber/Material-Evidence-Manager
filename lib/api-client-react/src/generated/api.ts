@@ -1017,6 +1017,77 @@ export const useCreateMaterial = <TError = ErrorType<unknown>,
       return useMutation(getCreateMaterialMutationOptions(options));
     }
 
+export const getReorderMaterialsUrl = () => {
+
+
+
+
+  return `/api/materials/reorder`
+}
+
+/**
+ * @summary Reorder materials within a category
+ */
+export const reorderMaterials = async (reorderInput: ReorderInput, options?: RequestInit): Promise<Material[]> => {
+
+  return customFetch<Material[]>(getReorderMaterialsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      reorderInput,)
+  }
+);}
+
+
+
+
+export const getReorderMaterialsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderMaterials>>, TError,{data: BodyType<ReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderMaterials>>, TError,{data: BodyType<ReorderInput>}, TContext> => {
+
+const mutationKey = ['reorderMaterials'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderMaterials>>, {data: BodyType<ReorderInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderMaterials(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderMaterialsMutationResult = NonNullable<Awaited<ReturnType<typeof reorderMaterials>>>
+    export type ReorderMaterialsMutationBody = BodyType<ReorderInput>
+    export type ReorderMaterialsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Reorder materials within a category
+ */
+export const useReorderMaterials = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderMaterials>>, TError,{data: BodyType<ReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderMaterials>>,
+        TError,
+        {data: BodyType<ReorderInput>},
+        TContext
+      > => {
+      return useMutation(getReorderMaterialsMutationOptions(options));
+    }
+
 export const getUpdateMaterialUrl = (id: number,) => {
 
 
@@ -1157,6 +1228,77 @@ export const useDeleteMaterial = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteMaterialMutationOptions(options));
+    }
+
+export const getReorderConnectionsUrl = () => {
+
+
+
+
+  return `/api/connections/reorder`
+}
+
+/**
+ * @summary Reorder connections
+ */
+export const reorderConnections = async (reorderInput: ReorderInput, options?: RequestInit): Promise<Connection[]> => {
+
+  return customFetch<Connection[]>(getReorderConnectionsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      reorderInput,)
+  }
+);}
+
+
+
+
+export const getReorderConnectionsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderConnections>>, TError,{data: BodyType<ReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderConnections>>, TError,{data: BodyType<ReorderInput>}, TContext> => {
+
+const mutationKey = ['reorderConnections'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderConnections>>, {data: BodyType<ReorderInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderConnections(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderConnectionsMutationResult = NonNullable<Awaited<ReturnType<typeof reorderConnections>>>
+    export type ReorderConnectionsMutationBody = BodyType<ReorderInput>
+    export type ReorderConnectionsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Reorder connections
+ */
+export const useReorderConnections = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderConnections>>, TError,{data: BodyType<ReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderConnections>>,
+        TError,
+        {data: BodyType<ReorderInput>},
+        TContext
+      > => {
+      return useMutation(getReorderConnectionsMutationOptions(options));
     }
 
 export const getListConnectionsUrl = (params?: ListConnectionsParams,) => {

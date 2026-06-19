@@ -8,6 +8,7 @@ import {
   UpdateMaterialParams,
   UpdateMaterialBody,
   DeleteMaterialParams,
+  ReorderMaterialsBody,
 } from "@workspace/api-zod";
 
 const router = Router();
@@ -41,6 +42,16 @@ router.post("/", async (req, res) => {
     })
     .returning();
   res.status(201).json(created);
+});
+
+router.post("/reorder", async (req, res) => {
+  const { ids } = ReorderMaterialsBody.parse(req.body);
+  const updated = await Promise.all(
+    ids.map((id, index) =>
+      db.update(materialsTable).set({ order: index }).where(eq(materialsTable.id, id)).returning().then((r) => r[0])
+    )
+  );
+  res.json(updated.filter(Boolean));
 });
 
 router.patch("/:id", async (req, res) => {

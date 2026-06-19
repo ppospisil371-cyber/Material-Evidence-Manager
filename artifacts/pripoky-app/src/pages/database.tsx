@@ -1,85 +1,316 @@
 import { useState } from "react";
-import { 
-  useListCategories, 
-  useCreateCategory, 
-  useUpdateCategory, 
+import {
+  useListCategories,
+  useCreateCategory,
+  useUpdateCategory,
   useDeleteCategory,
+  useReorderCategories,
   useListMaterials,
   useCreateMaterial,
   useUpdateMaterial,
   useDeleteMaterial,
+  useReorderMaterials,
   getListCategoriesQueryKey,
-  getListMaterialsQueryKey
+  getListMaterialsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit2, ChevronDown, ChevronUp } from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Label } from "recharts";
+import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
-export default function DatabasePage() {
-  const { data: categories } = useListCategories();
-  const { data: materials } = useListMaterials();
-  const queryClient = useQueryClient();
+type Category = { id: number; name: string; order: number; createdAt: string };
+type Material = {
+  id: number;
+  categoryId: number;
+  name: string;
+  unit: string;
+  description?: string | null;
+  order: number;
+  createdAt: string;
+};
+
+function SortableMaterialRow({
+  mat,
+  onDelete,
+}: {
+  mat: Material;
+  onDelete: (id: number) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: mat.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded group"
+      data-testid={`row-material-${mat.id}`}
+    >
+      <span
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground transition-colors shrink-0"
+      >
+        <GripVertical className="w-4 h-4" />
+      </span>
+      <div className="flex-1 grid grid-cols-12 gap-4 min-w-0">
+        <div className="col-span-5 font-medium truncate">{mat.name}</div>
+        <div className="col-span-2 text-muted-foreground">{mat.unit}</div>
+        <div className="col-span-5 text-sm text-muted-foreground truncate">{mat.description}</div>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive shrink-0"
+        onClick={() => onDelete(mat.id)}
+        data-testid={`button-delete-material-${mat.id}`}
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </Button>
+    </div>
+  );
+}
+
+function CategorySection({
+  category,
+  materials,
+  onDeleteCategory,
+  onDeleteMaterial,
+  onReorderMaterials,
+}: {
+  category: Category;
+  materials: Material[];
+  onDeleteCategory: (id: number) => void;
+  onDeleteMaterial: (id: number) => void;
+  onReorderMaterials: (categoryId: number, ids: number[]) => void;
+}) {
+  const [open, setOpen] = useState(true);
+  const [newMatState, setNewMatState] = useState({ name: "", unit: "", desc: "" });
+  const [localOrder, setLocalOrder] = useState<number[] | null>(null);
   const { toast } = useToast();
-
-  const createCategory = useCreateCategory();
-  const updateCategory = useUpdateCategory();
-  const deleteCategory = useDeleteCategory();
   const createMaterial = useCreateMaterial();
-  const updateMaterial = useUpdateMaterial();
-  const deleteMaterial = useDeleteMaterial();
+  const queryClient = useQueryClient();
 
-  const [newCatName, setNewCatName] = useState("");
-  const [newMatState, setNewMatState] = useState<Record<number, { name: string, unit: string, desc: string }>>({});
+  const orderedMaterials = localOrder
+    ? localOrder.map((id) => materials.find((m) => m.id === id)!).filter(Boolean)
+    : materials;
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCatName.trim()) return;
-    try {
-      await createCategory.mutateAsync({ data: { name: newCatName, order: (categories?.length || 0) + 1 } });
-      setNewCatName("");
-      queryClient.invalidateQueries({ queryKey: getListCategoriesQueryKey() });
-      toast({ title: "Kategorie vytvořena" });
-    } catch (e) {
-      toast({ title: "Chyba", variant: "destructive" });
-    }
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldOrder = localOrder ?? materials.map((m) => m.id);
+    const newOrder = arrayMove(oldOrder, oldOrder.indexOf(Number(active.id)), oldOrder.indexOf(Number(over.id)));
+    setLocalOrder(newOrder);
+    onReorderMaterials(category.id, newOrder);
   };
 
-  const handleCreateMaterial = async (categoryId: number) => {
-    const state = newMatState[categoryId];
-    if (!state?.name.trim() || !state?.unit.trim()) {
+  const handleAddMaterial = async () => {
+    if (!newMatState.name.trim() || !newMatState.unit.trim()) {
       toast({ title: "Chyba", description: "Vyplňte název a jednotku", variant: "destructive" });
       return;
     }
     try {
       await createMaterial.mutateAsync({
         data: {
-          categoryId,
-          name: state.name,
-          unit: state.unit,
-          description: state.desc || undefined,
-          order: 999
-        }
+          categoryId: category.id,
+          name: newMatState.name,
+          unit: newMatState.unit,
+          description: newMatState.desc || undefined,
+          order: materials.length,
+        },
       });
-      setNewMatState(prev => ({ ...prev, [categoryId]: { name: "", unit: "", desc: "" } }));
+      setNewMatState({ name: "", unit: "", desc: "" });
+      setLocalOrder(null);
       queryClient.invalidateQueries({ queryKey: getListMaterialsQueryKey() });
       toast({ title: "Materiál přidán" });
-    } catch (e) {
+    } catch {
+      toast({ title: "Chyba", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="border bg-card rounded-lg shadow-sm overflow-hidden">
+      <div
+        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted/30 transition-colors"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <div className="flex items-center gap-3">
+          {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+          <span className="font-semibold text-base">{category.name}</span>
+          <span className="text-xs text-muted-foreground">({materials.length} položek)</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive opacity-50 hover:opacity-100 shrink-0"
+          onClick={(e) => { e.stopPropagation(); onDeleteCategory(category.id); }}
+          data-testid={`button-delete-category-${category.id}`}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {open && (
+        <div className="border-t px-4 pt-3 pb-4 space-y-3">
+          {orderedMaterials.length > 0 ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={orderedMaterials.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-0.5">
+                  {orderedMaterials.map((mat) => (
+                    <SortableMaterialRow key={mat.id} mat={mat} onDelete={onDeleteMaterial} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <p className="text-muted-foreground text-sm italic py-1">Žádný materiál v této kategorii.</p>
+          )}
+
+          <div className="flex items-end gap-2 pt-3 border-t bg-muted/10 p-3 rounded-md">
+            <div className="flex-1 space-y-1">
+              <Label htmlFor={`mat-name-${category.id}`} className="text-xs">Název</Label>
+              <Input
+                id={`mat-name-${category.id}`}
+                placeholder="Trubka PE 32"
+                value={newMatState.name}
+                onChange={(e) => setNewMatState((s) => ({ ...s, name: e.target.value }))}
+                onKeyDown={(e) => { if (e.key === "Enter") handleAddMaterial(); }}
+                data-testid={`input-mat-name-${category.id}`}
+              />
+            </div>
+            <div className="w-20 space-y-1">
+              <Label htmlFor={`mat-unit-${category.id}`} className="text-xs">Jednotka</Label>
+              <Input
+                id={`mat-unit-${category.id}`}
+                placeholder="m"
+                value={newMatState.unit}
+                onChange={(e) => setNewMatState((s) => ({ ...s, unit: e.target.value }))}
+                onKeyDown={(e) => { if (e.key === "Enter") handleAddMaterial(); }}
+                data-testid={`input-mat-unit-${category.id}`}
+              />
+            </div>
+            <div className="flex-1 space-y-1">
+              <Label htmlFor={`mat-desc-${category.id}`} className="text-xs">Popis (volitelné)</Label>
+              <Input
+                id={`mat-desc-${category.id}`}
+                placeholder="SDR 11, role 100m"
+                value={newMatState.desc}
+                onChange={(e) => setNewMatState((s) => ({ ...s, desc: e.target.value }))}
+                onKeyDown={(e) => { if (e.key === "Enter") handleAddMaterial(); }}
+                data-testid={`input-mat-desc-${category.id}`}
+              />
+            </div>
+            <Button
+              onClick={handleAddMaterial}
+              disabled={createMaterial.isPending}
+              className="shrink-0"
+              data-testid={`button-add-material-${category.id}`}
+            >
+              <Plus className="w-4 h-4 mr-1" /> Přidat
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function DatabasePage() {
+  const { data: categories = [] } = useListCategories();
+  const { data: materials = [] } = useListMaterials();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
+  const deleteMaterial = useDeleteMaterial();
+  const reorderCategories = useReorderCategories();
+  const reorderMaterials = useReorderMaterials();
+
+  const [newCatName, setNewCatName] = useState("");
+  const [localCatOrder, setLocalCatOrder] = useState<number[] | null>(null);
+
+  const sortedCategories = [...categories].sort((a, b) => a.order - b.order);
+  const orderedCategories = localCatOrder
+    ? localCatOrder.map((id) => sortedCategories.find((c) => c.id === id)!).filter(Boolean)
+    : sortedCategories;
+
+  const catSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleCatDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldOrder = localCatOrder ?? sortedCategories.map((c) => c.id);
+    const newOrder = arrayMove(oldOrder, oldOrder.indexOf(Number(active.id)), oldOrder.indexOf(Number(over.id)));
+    setLocalCatOrder(newOrder);
+    try {
+      await reorderCategories.mutateAsync({ data: { ids: newOrder } });
+      queryClient.invalidateQueries({ queryKey: getListCategoriesQueryKey() });
+    } catch {
+      setLocalCatOrder(oldOrder);
+      toast({ title: "Chyba", description: "Nepodařilo se změnit pořadí kategorií", variant: "destructive" });
+    }
+  };
+
+  const handleReorderMaterials = async (categoryId: number, ids: number[]) => {
+    try {
+      await reorderMaterials.mutateAsync({ data: { ids } });
+      queryClient.invalidateQueries({ queryKey: getListMaterialsQueryKey() });
+    } catch {
+      toast({ title: "Chyba", description: "Nepodařilo se změnit pořadí materiálů", variant: "destructive" });
+    }
+  };
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    try {
+      await createCategory.mutateAsync({ data: { name: newCatName, order: categories.length } });
+      setNewCatName("");
+      setLocalCatOrder(null);
+      queryClient.invalidateQueries({ queryKey: getListCategoriesQueryKey() });
+      toast({ title: "Kategorie vytvořena" });
+    } catch {
       toast({ title: "Chyba", variant: "destructive" });
     }
   };
 
   const handleDeleteCategory = async (id: number) => {
-    if (!confirm("Opravdu smazat kategorii?")) return;
+    if (!confirm("Opravdu smazat kategorii a veškerý její materiál?")) return;
     try {
       await deleteCategory.mutateAsync({ id });
+      setLocalCatOrder(null);
       queryClient.invalidateQueries({ queryKey: getListCategoriesQueryKey() });
       queryClient.invalidateQueries({ queryKey: getListMaterialsQueryKey() });
-    } catch (e) {
+    } catch {
       toast({ title: "Chyba při mazání", variant: "destructive" });
     }
   };
@@ -89,12 +320,10 @@ export default function DatabasePage() {
     try {
       await deleteMaterial.mutateAsync({ id });
       queryClient.invalidateQueries({ queryKey: getListMaterialsQueryKey() });
-    } catch (e) {
+    } catch {
       toast({ title: "Chyba", variant: "destructive" });
     }
   };
-
-  const sortedCategories = categories ? [...categories].sort((a,b) => a.order - b.order) : [];
 
   return (
     <div className="space-y-6">
@@ -105,92 +334,62 @@ export default function DatabasePage() {
       <Card>
         <CardContent className="pt-6">
           <form onSubmit={handleCreateCategory} className="flex gap-2">
-            <Input 
-              placeholder="Název nové kategorie (např. Zemní práce)" 
+            <Input
+              placeholder="Název nové kategorie (např. Zemní práce)"
               value={newCatName}
-              onChange={e => setNewCatName(e.target.value)}
+              onChange={(e) => setNewCatName(e.target.value)}
               className="max-w-sm"
+              data-testid="input-new-category"
             />
-            <Button type="submit" disabled={createCategory.isPending}>
+            <Button type="submit" disabled={createCategory.isPending} data-testid="button-add-category">
               <Plus className="w-4 h-4 mr-2" /> Přidat kategorii
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <Accordion type="multiple" className="w-full space-y-4">
-        {sortedCategories.map((category) => {
-          const catMaterials = materials?.filter(m => m.categoryId === category.id).sort((a,b) => a.order - b.order) || [];
-          const formState = newMatState[category.id] || { name: "", unit: "", desc: "" };
+      <DndContext sensors={catSensors} collisionDetection={closestCenter} onDragEnd={handleCatDragEnd}>
+        <SortableContext items={orderedCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3">
+            {orderedCategories.map((category) => {
+              const catMaterials = materials
+                .filter((m) => m.categoryId === category.id)
+                .sort((a, b) => a.order - b.order);
+              return (
+                <SortableCategoryWrapper key={category.id} category={category}>
+                  <CategorySection
+                    category={category}
+                    materials={catMaterials}
+                    onDeleteCategory={handleDeleteCategory}
+                    onDeleteMaterial={handleDeleteMaterial}
+                    onReorderMaterials={handleReorderMaterials}
+                  />
+                </SortableCategoryWrapper>
+              );
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
+}
 
-          return (
-            <AccordionItem value={`cat-${category.id}`} key={category.id} className="border bg-card rounded-lg shadow-sm px-4">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center justify-between w-full pr-4">
-                  <span className="font-semibold text-lg">{category.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-normal text-muted-foreground mr-4">
-                      {catMaterials.length} položek
-                    </span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-50 hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteCategory(category.id); }}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-4 pb-6 space-y-4 border-t mt-2">
-                <div className="space-y-2">
-                  {catMaterials.map(mat => (
-                    <div key={mat.id} className="flex items-center gap-4 p-2 hover:bg-muted/50 rounded group">
-                      <div className="flex-1 grid grid-cols-12 gap-4">
-                        <div className="col-span-4 font-medium">{mat.name}</div>
-                        <div className="col-span-2 text-muted-foreground">{mat.unit}</div>
-                        <div className="col-span-6 text-sm text-muted-foreground truncate">{mat.description}</div>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive" onClick={() => handleDeleteMaterial(mat.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  {catMaterials.length === 0 && (
-                    <div className="text-muted-foreground text-sm py-2 italic">Žádný materiál v této kategorii.</div>
-                  )}
-                </div>
-
-                <div className="flex items-end gap-3 mt-4 pt-4 border-t bg-muted/10 p-4 rounded-md">
-                  <div className="flex-1 space-y-1">
-                    <Label className="text-xs">Název</Label>
-                    <Input 
-                      placeholder="Trubka PE 32" 
-                      value={formState.name}
-                      onChange={e => setNewMatState(prev => ({ ...prev, [category.id]: { ...formState, name: e.target.value } }))}
-                    />
-                  </div>
-                  <div className="w-24 space-y-1">
-                    <Label className="text-xs">Jednotka</Label>
-                    <Input 
-                      placeholder="m" 
-                      value={formState.unit}
-                      onChange={e => setNewMatState(prev => ({ ...prev, [category.id]: { ...formState, unit: e.target.value } }))}
-                    />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <Label className="text-xs">Popis (volitelné)</Label>
-                    <Input 
-                      placeholder="SDR 11, role 100m" 
-                      value={formState.desc}
-                      onChange={e => setNewMatState(prev => ({ ...prev, [category.id]: { ...formState, desc: e.target.value } }))}
-                    />
-                  </div>
-                  <Button onClick={() => handleCreateMaterial(category.id)} disabled={createMaterial.isPending}>
-                    <Plus className="w-4 h-4" /> Přidat
-                  </Button>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          );
-        })}
-      </Accordion>
+function SortableCategoryWrapper({
+  category,
+  children,
+}: {
+  category: Category;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, transform, transition, isDragging } = useSortable({ id: category.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children}
     </div>
   );
 }

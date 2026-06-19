@@ -252,6 +252,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/Material"
 
+  /materials/reorder:
+    post:
+      operationId: reorderMaterials
+      tags: [materials]
+      summary: Reorder materials within a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderInput"
+      responses:
+        "200":
+          description: Reordered
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Material"
+
   /materials/{id}:
     patch:
       operationId: updateMaterial
@@ -289,6 +310,27 @@ paths:
       responses:
         "204":
           description: Deleted
+
+  /connections/reorder:
+    post:
+      operationId: reorderConnections
+      tags: [connections]
+      summary: Reorder connections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderInput"
+      responses:
+        "200":
+          description: Reordered
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Connection"
 
   /connections:
     get:

@@ -9,6 +9,7 @@ export const connectionsTable = pgTable("connections", {
   note: text("note"),
   stavbaId: integer("stavba_id").references(() => stavbyTable.id, { onDelete: "cascade" }),
   copiedFromId: integer("copied_from_id"),
+  order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

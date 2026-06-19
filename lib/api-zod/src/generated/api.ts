@@ -193,6 +193,25 @@ export const CreateMaterialBody = zod.object({
 
 
 /**
+ * @summary Reorder materials within a category
+ */
+export const ReorderMaterialsBody = zod.object({
+  "ids": zod.array(zod.number())
+})
+
+export const ReorderMaterialsResponseItem = zod.object({
+  "id": zod.number(),
+  "categoryId": zod.number(),
+  "name": zod.string(),
+  "unit": zod.string(),
+  "description": zod.string().nullish(),
+  "order": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const ReorderMaterialsResponse = zod.array(ReorderMaterialsResponseItem)
+
+
+/**
  * @summary Update a material
  */
 export const UpdateMaterialParams = zod.object({
@@ -228,6 +247,24 @@ export const UpdateMaterialResponse = zod.object({
 export const DeleteMaterialParams = zod.object({
   "id": zod.coerce.number()
 })
+
+
+/**
+ * @summary Reorder connections
+ */
+export const ReorderConnectionsBody = zod.object({
+  "ids": zod.array(zod.number())
+})
+
+export const ReorderConnectionsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "note": zod.string().nullish(),
+  "stavbaId": zod.number().nullish(),
+  "copiedFromId": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ReorderConnectionsResponse = zod.array(ReorderConnectionsResponseItem)
 
 
 /**
