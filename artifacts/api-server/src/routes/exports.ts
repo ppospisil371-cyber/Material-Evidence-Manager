@@ -7,6 +7,12 @@ import PDFDocument from "pdfkit";
 
 const router = Router();
 
+function buildContentDisposition(disposition: "attachment" | "inline", filename: string): string {
+  const ascii = filename.replace(/[^\x20-\x7E]/g, "_");
+  const encoded = encodeURIComponent(filename);
+  return `${disposition}; filename="${ascii}"; filename*=UTF-8''${encoded}`;
+}
+
 async function buildExportData(stavbaId?: number, categoryId?: number) {
   let connectionsQuery = db
     .select()
@@ -92,12 +98,12 @@ router.get("/xls", async (req, res) => {
     XLSX.utils.book_append_sheet(wb, ws, safeTitle || `Prip_${conn.id}`);
   }
 
-  const catName = cats.length === 1 ? cats[0].name.replace(/[^a-zA-Z0-9\u00C0-\u024F]/g, "-").substring(0, 30) : null;
+  const catName = cats.length === 1 ? cats[0].name : null;
   const filename = catName ? `${catName}.xlsx` : "evidence-pripojek.xlsx";
 
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
   res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Content-Disposition", buildContentDisposition("attachment", filename));
   res.send(buf);
 });
 
@@ -112,10 +118,10 @@ router.get("/pdf", async (req, res) => {
   const doc = new PDFDocument({ margin: 40, size: "A4" });
 
   const catName = cats.length === 1 ? cats[0].name : null;
-  const filename = catName ? `${catName.replace(/[^a-zA-Z0-9\u00C0-\u024F]/g, "-").substring(0, 30)}.pdf` : "evidence-pripojek.pdf";
+  const filename = catName ? `${catName}.pdf` : "evidence-pripojek.pdf";
 
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Content-Disposition", buildContentDisposition("attachment", filename));
   doc.pipe(res);
 
   const totalByMaterial = new Map<number, number>();
