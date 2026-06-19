@@ -7,16 +7,29 @@ import PDFDocument from "pdfkit";
 
 const router = Router();
 
-async function buildExportData(stavbaId?: number) {
-  let connectionsQuery = db.select().from(connectionsTable).orderBy(asc(connectionsTable.name)).$dynamic();
+async function buildExportData(stavbaId?: number, categoryId?: number) {
+  let connectionsQuery = db
+    .select()
+    .from(connectionsTable)
+    .orderBy(asc(connectionsTable.order), asc(connectionsTable.name))
+    .$dynamic();
   if (stavbaId !== undefined && !isNaN(stavbaId)) {
     connectionsQuery = connectionsQuery.where(eq(connectionsTable.stavbaId, stavbaId));
   }
   const connections = await connectionsQuery;
   const connectionIds = connections.map((c) => c.id);
 
-  const cats = await db.select().from(categoriesTable).orderBy(asc(categoriesTable.order));
-  const materials = await db.select().from(materialsTable).orderBy(asc(materialsTable.order));
+  let catsQuery = db.select().from(categoriesTable).orderBy(asc(categoriesTable.order)).$dynamic();
+  if (categoryId !== undefined && !isNaN(categoryId)) {
+    catsQuery = catsQuery.where(eq(categoriesTable.id, categoryId));
+  }
+  const cats = await catsQuery;
+
+  let matsQuery = db.select().from(materialsTable).orderBy(asc(materialsTable.order)).$dynamic();
+  if (categoryId !== undefined && !isNaN(categoryId)) {
+    matsQuery = matsQuery.where(eq(materialsTable.categoryId, categoryId));
+  }
+  const materials = await matsQuery;
 
   const allItems =
     connectionIds.length > 0
@@ -31,8 +44,11 @@ async function buildExportData(stavbaId?: number) {
 
 router.get("/xls", async (req, res) => {
   const rawStavbaId = req.query.stavbaId;
+  const rawCategoryId = req.query.categoryId;
   const stavbaId = rawStavbaId !== undefined ? parseInt(rawStavbaId as string) : undefined;
-  const { connections, cats, materials, allItems } = await buildExportData(stavbaId);
+  const categoryId = rawCategoryId !== undefined ? parseInt(rawCategoryId as string) : undefined;
+
+  const { connections, cats, materials, allItems } = await buildExportData(stavbaId, categoryId);
 
   const wb = XLSX.utils.book_new();
 
@@ -76,20 +92,30 @@ router.get("/xls", async (req, res) => {
     XLSX.utils.book_append_sheet(wb, ws, safeTitle || `Prip_${conn.id}`);
   }
 
+  const catName = cats.length === 1 ? cats[0].name.replace(/[^a-zA-Z0-9\u00C0-\u024F]/g, "-").substring(0, 30) : null;
+  const filename = catName ? `${catName}.xlsx` : "evidence-pripojek.xlsx";
+
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
   res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", "attachment; filename=evidence-pripojek.xlsx");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
   res.send(buf);
 });
 
 router.get("/pdf", async (req, res) => {
   const rawStavbaId = req.query.stavbaId;
+  const rawCategoryId = req.query.categoryId;
   const stavbaId = rawStavbaId !== undefined ? parseInt(rawStavbaId as string) : undefined;
-  const { connections, cats, materials, allItems } = await buildExportData(stavbaId);
+  const categoryId = rawCategoryId !== undefined ? parseInt(rawCategoryId as string) : undefined;
+
+  const { connections, cats, materials, allItems } = await buildExportData(stavbaId, categoryId);
 
   const doc = new PDFDocument({ margin: 40, size: "A4" });
+
+  const catName = cats.length === 1 ? cats[0].name : null;
+  const filename = catName ? `${catName.replace(/[^a-zA-Z0-9\u00C0-\u024F]/g, "-").substring(0, 30)}.pdf` : "evidence-pripojek.pdf";
+
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", "attachment; filename=evidence-pripojek.pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
   doc.pipe(res);
 
   const totalByMaterial = new Map<number, number>();
@@ -97,7 +123,8 @@ router.get("/pdf", async (req, res) => {
     totalByMaterial.set(item.materialId, (totalByMaterial.get(item.materialId) ?? 0) + (item.quantity ?? 0));
   }
 
-  doc.fontSize(16).text("Evidence materiálu přípojek", { align: "center" });
+  const title = catName ? `Evidence materiálu — ${catName}` : "Evidence materiálu přípojek";
+  doc.fontSize(16).text(title, { align: "center" });
   doc.moveDown();
   doc.fontSize(14).text("Celkový souhrn", { underline: true });
   doc.moveDown(0.5);

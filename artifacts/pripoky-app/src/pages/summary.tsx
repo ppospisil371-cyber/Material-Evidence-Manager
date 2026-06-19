@@ -19,19 +19,25 @@ export default function SummaryPage() {
 
   const [isExporting, setIsExporting] = useState<string | null>(null);
 
-  const handleExport = async (type: "xls" | "pdf") => {
-    setIsExporting(type);
+  const handleExport = async (type: "xls" | "pdf", options?: { categoryId?: number; categoryName?: string }) => {
+    const key = options?.categoryId ? `${type}-cat-${options.categoryId}` : type;
+    setIsExporting(key);
     try {
-      const url = stavbaId !== null
-        ? `/api/export/${type}?stavbaId=${stavbaId}`
-        : `/api/export/${type}`;
+      const params = new URLSearchParams();
+      if (stavbaId !== null) params.set("stavbaId", String(stavbaId));
+      if (options?.categoryId !== undefined) params.set("categoryId", String(options.categoryId));
+
+      const url = `/api/export/${type}?${params.toString()}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Export selhal");
       const blob = await response.blob();
       const objectUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = objectUrl;
-      a.download = `evidence-pripojek.${type === "xls" ? "xlsx" : "pdf"}`;
+      const baseName = options?.categoryName
+        ? options.categoryName.replace(/[^a-zA-Z0-9\u00C0-\u024F]/g, "-").substring(0, 40)
+        : "evidence-pripojek";
+      a.download = `${baseName}.${type === "xls" ? "xlsx" : "pdf"}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(objectUrl);
@@ -86,7 +92,7 @@ export default function SummaryPage() {
             ) : (
               <FileSpreadsheet className="w-4 h-4 mr-2" />
             )}
-            Export XLS
+            Export XLS — vše
           </Button>
           <Button
             onClick={() => handleExport("pdf")}
@@ -98,39 +104,75 @@ export default function SummaryPage() {
             ) : (
               <FileIcon className="w-4 h-4 mr-2" />
             )}
-            Export PDF
+            Export PDF — vše
           </Button>
         </div>
       </div>
 
       <div className="space-y-8">
-        {Object.entries(groupedRows).map(([catId, category]) => (
-          <Card key={catId}>
-            <CardHeader className="bg-muted/30 pb-4">
-              <CardTitle>{category.name}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50 text-muted-foreground">
-                  <tr>
-                    <th className="px-6 py-3 font-medium">Materiál</th>
-                    <th className="px-6 py-3 font-medium text-right w-32">Množství</th>
-                    <th className="px-6 py-3 font-medium w-24">Jednotka</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {category.items.map((row) => (
-                    <tr key={row.materialId} className="hover:bg-muted/10">
-                      <td className="px-6 py-3 font-medium">{row.materialName}</td>
-                      <td className="px-6 py-3 text-right font-semibold tabular-nums">{row.totalQuantity}</td>
-                      <td className="px-6 py-3 text-muted-foreground">{row.unit}</td>
+        {Object.entries(groupedRows).map(([catId, category]) => {
+          const catIdNum = Number(catId);
+          const xlsKey = `xls-cat-${catIdNum}`;
+          const pdfKey = `pdf-cat-${catIdNum}`;
+          return (
+            <Card key={catId}>
+              <CardHeader className="bg-muted/30 pb-4">
+                <div className="flex items-center justify-between gap-4">
+                  <CardTitle>{category.name}</CardTitle>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExport("xls", { categoryId: catIdNum, categoryName: category.name })}
+                      disabled={isExporting !== null}
+                      data-testid={`button-export-cat-xls-${catIdNum}`}
+                    >
+                      {isExporting === xlsKey ? (
+                        <Download className="w-3.5 h-3.5 mr-1.5 animate-bounce" />
+                      ) : (
+                        <FileSpreadsheet className="w-3.5 h-3.5 mr-1.5" />
+                      )}
+                      XLS
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleExport("pdf", { categoryId: catIdNum, categoryName: category.name })}
+                      disabled={isExporting !== null}
+                      data-testid={`button-export-cat-pdf-${catIdNum}`}
+                    >
+                      {isExporting === pdfKey ? (
+                        <Download className="w-3.5 h-3.5 mr-1.5 animate-bounce" />
+                      ) : (
+                        <FileIcon className="w-3.5 h-3.5 mr-1.5" />
+                      )}
+                      PDF
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/50 text-muted-foreground">
+                    <tr>
+                      <th className="px-6 py-3 font-medium">Materiál</th>
+                      <th className="px-6 py-3 font-medium text-right w-32">Množství</th>
+                      <th className="px-6 py-3 font-medium w-24">Jednotka</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        ))}
+                  </thead>
+                  <tbody className="divide-y">
+                    {category.items.map((row) => (
+                      <tr key={row.materialId} className="hover:bg-muted/10">
+                        <td className="px-6 py-3 font-medium">{row.materialName}</td>
+                        <td className="px-6 py-3 text-right font-semibold tabular-nums">{row.totalQuantity}</td>
+                        <td className="px-6 py-3 text-muted-foreground">{row.unit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          );
+        })}
         {Object.keys(groupedRows).length === 0 && (
           <div className="text-center p-12 text-muted-foreground border rounded-lg bg-muted/10">
             Zatím nejsou k dispozici žádná data o materiálu pro tuto stavbu.
