@@ -1,20 +1,31 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { stavbyTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import {
   CreateStavbaBody,
   GetStavbaParams,
   UpdateStavbaParams,
   DeleteStavbaParams,
   UpdateStavbaBody,
+  ReorderStavbyBody,
 } from "@workspace/api-zod";
 
 const router = Router();
 
 router.get("/", async (_req, res) => {
-  const stavby = await db.select().from(stavbyTable).orderBy(desc(stavbyTable.createdAt));
+  const stavby = await db.select().from(stavbyTable).orderBy(asc(stavbyTable.order), asc(stavbyTable.createdAt));
   res.json(stavby);
+});
+
+router.post("/reorder", async (req, res) => {
+  const { ids } = ReorderStavbyBody.parse(req.body);
+  const updated = await Promise.all(
+    ids.map((id, index) =>
+      db.update(stavbyTable).set({ order: index }).where(eq(stavbyTable.id, id)).returning().then((r) => r[0])
+    )
+  );
+  res.json(updated.filter(Boolean));
 });
 
 router.post("/", async (req, res) => {

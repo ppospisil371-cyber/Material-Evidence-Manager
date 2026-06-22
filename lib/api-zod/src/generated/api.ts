@@ -17,6 +17,22 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Reorder stavby
+ */
+export const ReorderStavbyBody = zod.object({
+  "ids": zod.array(zod.number())
+})
+
+export const ReorderStavbyResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ReorderStavbyResponse = zod.array(ReorderStavbyResponseItem)
+
+
+/**
  * @summary List all construction sites
  */
 export const ListStavbyResponseItem = zod.object({

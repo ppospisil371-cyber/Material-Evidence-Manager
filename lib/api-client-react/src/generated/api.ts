@@ -134,6 +134,77 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+export const getReorderStavbyUrl = () => {
+
+
+
+
+  return `/api/stavby/reorder`
+}
+
+/**
+ * @summary Reorder stavby
+ */
+export const reorderStavby = async (reorderInput: ReorderInput, options?: RequestInit): Promise<Stavba[]> => {
+
+  return customFetch<Stavba[]>(getReorderStavbyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      reorderInput,)
+  }
+);}
+
+
+
+
+export const getReorderStavbyMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderStavby>>, TError,{data: BodyType<ReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderStavby>>, TError,{data: BodyType<ReorderInput>}, TContext> => {
+
+const mutationKey = ['reorderStavby'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderStavby>>, {data: BodyType<ReorderInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderStavby(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderStavbyMutationResult = NonNullable<Awaited<ReturnType<typeof reorderStavby>>>
+    export type ReorderStavbyMutationBody = BodyType<ReorderInput>
+    export type ReorderStavbyMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Reorder stavby
+ */
+export const useReorderStavby = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderStavby>>, TError,{data: BodyType<ReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderStavby>>,
+        TError,
+        {data: BodyType<ReorderInput>},
+        TContext
+      > => {
+      return useMutation(getReorderStavbyMutationOptions(options));
+    }
+
 export const getListStavbyUrl = () => {
 
 

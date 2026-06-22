@@ -9,8 +9,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { FileText, Database, LayoutDashboard, Plus, BarChart2, Building2, ChevronDown, Check, PlusCircle, Pencil, Trash2 } from "lucide-react";
-import { useListStavby, useCreateStavba, useDeleteStavba, useUpdateStavba, getListStavbyQueryKey } from "@workspace/api-client-react";
+import { FileText, Database, LayoutDashboard, Plus, BarChart2, Building2, ChevronDown, Check, PlusCircle, Pencil, Trash2, ChevronUp } from "lucide-react";
+import { useListStavby, useCreateStavba, useDeleteStavba, useUpdateStavba, useReorderStavby, getListStavbyQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStavba } from "@/context/stavba-context";
 import {
@@ -29,6 +29,7 @@ function StavbaSelector() {
   const createMutation = useCreateStavba();
   const updateMutation = useUpdateStavba();
   const deleteMutation = useDeleteStavba();
+  const reorderMutation = useReorderStavby();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -36,8 +37,13 @@ function StavbaSelector() {
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [localOrder, setLocalOrder] = useState<number[] | null>(null);
 
   const currentStavba = stavby.find((s) => s.id === stavbaId);
+
+  const orderedStavby = localOrder
+    ? localOrder.map((id) => stavby.find((s) => s.id === id)!).filter(Boolean)
+    : stavby;
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -46,6 +52,7 @@ function StavbaSelector() {
       queryClient.invalidateQueries({ queryKey: getListStavbyQueryKey() });
       setStavbaId(created.id);
       setNewName("");
+      setLocalOrder(null);
       toast({ title: "Stavba vytvořena", description: created.name });
     } catch {
       toast({ title: "Chyba", description: "Nepodařilo se vytvořit stavbu", variant: "destructive" });
@@ -63,13 +70,31 @@ function StavbaSelector() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Opravdu smazat stavbu "${name}" a všechny její přípojky?`)) return;
     try {
       await deleteMutation.mutateAsync({ id });
       queryClient.invalidateQueries({ queryKey: getListStavbyQueryKey() });
       if (stavbaId === id) setStavbaId(null);
+      setLocalOrder(null);
     } catch {
       toast({ title: "Chyba", description: "Nepodařilo se smazat stavbu", variant: "destructive" });
+    }
+  };
+
+  const handleMove = async (index: number, direction: -1 | 1) => {
+    const current = localOrder ?? orderedStavby.map((s) => s.id);
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= current.length) return;
+    const newOrder = [...current];
+    [newOrder[index], newOrder[newIndex]] = [newOrder[newIndex], newOrder[index]];
+    setLocalOrder(newOrder);
+    try {
+      await reorderMutation.mutateAsync({ data: { ids: newOrder } });
+      queryClient.invalidateQueries({ queryKey: getListStavbyQueryKey() });
+    } catch {
+      setLocalOrder(current);
+      toast({ title: "Chyba", description: "Nepodařilo se změnit pořadí", variant: "destructive" });
     }
   };
 
@@ -90,15 +115,15 @@ function StavbaSelector() {
           <ChevronDown className="w-3 h-3 shrink-0 opacity-60" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-2" side="right" align="start">
+      <PopoverContent className="w-80 p-2" side="right" align="start">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">
           Stavby
         </p>
-        <div className="space-y-0.5 max-h-56 overflow-y-auto">
-          {stavby.map((s) => (
-            <div key={s.id} className="flex items-center gap-1 group">
+        <div className="space-y-0.5 max-h-64 overflow-y-auto">
+          {orderedStavby.map((s, index) => (
+            <div key={s.id} className="flex items-center gap-1 group rounded hover:bg-accent/40 transition-colors pr-1">
               {editingId === s.id ? (
-                <div className="flex gap-1 flex-1 pr-1">
+                <div className="flex gap-1 flex-1 px-1 py-0.5">
                   <Input
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
@@ -109,33 +134,61 @@ function StavbaSelector() {
                     className="h-7 text-sm"
                     autoFocus
                   />
-                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => handleUpdate(s.id)}>
+                  <Button size="sm" variant="ghost" className="h-7 px-2 shrink-0" onClick={() => handleUpdate(s.id)}>
                     <Check className="w-3 h-3" />
                   </Button>
                 </div>
               ) : (
                 <>
+                  {/* Up/down reorder arrows — visible on hover */}
+                  <div className="flex flex-col gap-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <button
+                      className="h-4 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-20"
+                      onClick={() => handleMove(index, -1)}
+                      disabled={index === 0}
+                      title="Posunout nahoru"
+                    >
+                      <ChevronUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      className="h-4 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-20"
+                      onClick={() => handleMove(index, 1)}
+                      disabled={index === orderedStavby.length - 1}
+                      title="Posunout dolů"
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Stavba select button */}
                   <button
                     className={cn(
-                      "flex-1 flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-accent transition-colors text-left",
+                      "flex-1 flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left min-w-0",
                       stavbaId === s.id && "font-semibold"
                     )}
                     onClick={() => { setStavbaId(s.id); setOpen(false); }}
                     data-testid={`stavba-item-${s.id}`}
                   >
-                    {stavbaId === s.id && <Check className="w-3 h-3 shrink-0 text-primary" />}
-                    <span className={cn("truncate", stavbaId !== s.id && "pl-5")}>{s.name}</span>
+                    {stavbaId === s.id
+                      ? <Check className="w-3 h-3 shrink-0 text-primary" />
+                      : <span className="w-3 shrink-0" />
+                    }
+                    <span className="truncate">{s.name}</span>
                   </button>
-                  <div className="hidden group-hover:flex gap-0.5">
+
+                  {/* Edit + Delete — always visible as small icons */}
+                  <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="sm" variant="ghost" className="h-6 w-6 p-0"
+                      title="Přejmenovat"
                       onClick={() => { setEditingId(s.id); setEditingName(s.name); }}
                     >
                       <Pencil className="w-3 h-3" />
                     </Button>
                     <Button
-                      size="sm" variant="ghost" className="h-6 w-6 p-0 hover:text-destructive"
-                      onClick={() => handleDelete(s.id)}
+                      size="sm" variant="ghost" className="h-6 w-6 p-0 hover:text-destructive hover:bg-destructive/10"
+                      title="Smazat stavbu"
+                      onClick={() => handleDelete(s.id, s.name)}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -162,6 +215,7 @@ function StavbaSelector() {
             onClick={handleCreate}
             disabled={!newName.trim() || createMutation.isPending}
             data-testid="button-create-stavba"
+            title="Přidat stavbu"
           >
             <PlusCircle className="w-3 h-3" />
           </Button>

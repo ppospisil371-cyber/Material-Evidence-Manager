@@ -36,6 +36,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
+  /stavby/reorder:
+    post:
+      operationId: reorderStavby
+      tags: [stavby]
+      summary: Reorder stavby
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderInput"
+      responses:
+        "200":
+          description: Reordered
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Stavba"
+
   /stavby:
     get:
       operationId: listStavby
