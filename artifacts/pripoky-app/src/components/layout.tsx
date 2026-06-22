@@ -115,7 +115,7 @@ function StavbaSelector() {
           <ChevronDown className="w-3 h-3 shrink-0 opacity-60" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-2" side="right" align="start">
+      <PopoverContent className="w-[38rem] p-2" side="right" align="start">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">
           Stavby
         </p>
