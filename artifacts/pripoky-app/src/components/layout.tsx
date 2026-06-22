@@ -119,11 +119,11 @@ function StavbaSelector() {
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">
           Stavby
         </p>
-        <div className="space-y-0.5 max-h-64 overflow-y-auto">
+        <div className="space-y-0.5 max-h-72 overflow-y-auto">
           {orderedStavby.map((s, index) => (
-            <div key={s.id} className="flex items-center gap-1 group rounded hover:bg-accent/40 transition-colors pr-1">
+            <div key={s.id} className="rounded hover:bg-accent/40 transition-colors">
               {editingId === s.id ? (
-                <div className="flex gap-1 flex-1 px-1 py-0.5">
+                <div className="flex gap-1 px-1 py-1">
                   <Input
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
@@ -139,11 +139,11 @@ function StavbaSelector() {
                   </Button>
                 </div>
               ) : (
-                <>
-                  {/* Up/down reorder arrows — visible on hover */}
-                  <div className="flex flex-col gap-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <div className="flex items-center gap-0.5 px-1 py-0.5">
+                  {/* Up/down reorder arrows — always visible */}
+                  <div className="flex flex-col shrink-0">
                     <button
-                      className="h-4 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-20"
+                      className="h-4 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-25"
                       onClick={() => handleMove(index, -1)}
                       disabled={index === 0}
                       title="Posunout nahoru"
@@ -151,7 +151,7 @@ function StavbaSelector() {
                       <ChevronUp className="w-3 h-3" />
                     </button>
                     <button
-                      className="h-4 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-20"
+                      className="h-4 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-25"
                       onClick={() => handleMove(index, 1)}
                       disabled={index === orderedStavby.length - 1}
                       title="Posunout dolů"
@@ -163,7 +163,7 @@ function StavbaSelector() {
                   {/* Stavba select button */}
                   <button
                     className={cn(
-                      "flex-1 flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left min-w-0",
+                      "flex-1 flex items-center gap-1.5 px-1.5 py-1 rounded text-sm transition-colors text-left min-w-0",
                       stavbaId === s.id && "font-semibold"
                     )}
                     onClick={() => { setStavbaId(s.id); setOpen(false); }}
@@ -176,24 +176,24 @@ function StavbaSelector() {
                     <span className="truncate">{s.name}</span>
                   </button>
 
-                  {/* Edit + Delete — always visible as small icons */}
-                  <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Edit + Delete — always visible */}
+                  <div className="flex gap-0.5 shrink-0">
                     <Button
-                      size="sm" variant="ghost" className="h-6 w-6 p-0"
+                      size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                       title="Přejmenovat"
                       onClick={() => { setEditingId(s.id); setEditingName(s.name); }}
                     >
                       <Pencil className="w-3 h-3" />
                     </Button>
                     <Button
-                      size="sm" variant="ghost" className="h-6 w-6 p-0 hover:text-destructive hover:bg-destructive/10"
+                      size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       title="Smazat stavbu"
                       onClick={() => handleDelete(s.id, s.name)}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
-                </>
+                </div>
               )}
             </div>
           ))}
