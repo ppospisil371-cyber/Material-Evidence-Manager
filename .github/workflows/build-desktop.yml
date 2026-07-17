@@ -36,19 +36,8 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies (skip native builds)
-        run: pnpm install --frozen-lockfile --ignore-scripts
-        env:
-          ELECTRON_SKIP_BINARY_DOWNLOAD: 0
-
-      - name: Run esbuild postinstall
-        run: node node_modules/esbuild/install.js
-        continue-on-error: true
-
-      - name: Download Electron binary
-        working-directory: artifacts/pripoky-desktop
-        run: node -e "require('electron')"
-        continue-on-error: true
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build shared libs (api-zod)
         run: pnpm run typecheck:libs
