@@ -1,0 +1,42 @@
+.../esbuild@0.27.3/node_modules/esbuild postinstall: Done
+.../node_modules/better-sqlite3 install: gyp http GET https://nodejs.org/download/release/v24.18.0/SHASUMS256.txt
+.../node_modules/better-sqlite3 install: gyp http GET https://nodejs.org/download/release/v24.18.0/win-x64/node.lib
+.../node_modules/better-sqlite3 install: gyp http 200 https://nodejs.org/download/release/v24.18.0/SHASUMS256.txt
+.../node_modules/better-sqlite3 install: gyp http 200 https://nodejs.org/download/release/v24.18.0/win-x64/node.lib
+.../node_modules/better-sqlite3 install: gyp ERR! find VS 
+.../node_modules/better-sqlite3 install: gyp ERR! find VS msvs_version not set from command line or npm config
+.../node_modules/better-sqlite3 install: gyp ERR! find VS VCINSTALLDIR not set, not running in VS Command Prompt
+.../node_modules/better-sqlite3 install: gyp ERR! find VS could not use PowerShell to find Visual Studio 2017 or newer, try re-running with '--loglevel silly' for more details.
+.../node_modules/better-sqlite3 install: gyp ERR! find VS 
+.../node_modules/better-sqlite3 install: gyp ERR! find VS Failure details: RangeError [ERR_CHILD_PROCESS_STDIO_MAXB
+.../node_modules/better-sqlite3 install: gyp ERR! find VS unknown version "undefined" found at "C:\Program Files\Microsoft Visual Studio\18\Enterprise"
+.../node_modules/better-sqlite3 install: gyp ERR! find VS could not find a version of Visual Studio 2017 or newer to use
+.../node_modules/better-sqlite3 install: gyp ERR! find VS not looking for VS2017 as it is only supported up to Node.js 21
+.../node_modules/better-sqlite3 install: gyp ERR! find VS not looking for VS2017 as it is only supported up to Node.js 21
+.../node_modules/better-sqlite3 install: gyp ERR! find VS not looking for VS2017 as it is only supported up to Node.js 21
+.../node_modules/better-sqlite3 install: gyp ERR! find VS not looking for VS2015 as it is only supported up to Node.js 18
+.../node_modules/better-sqlite3 install: gyp ERR! find VS not looking for VS2013 as it is only supported up to Node.js 8
+.../node_modules/better-sqlite3 install: gyp ERR! find VS 
+.../node_modules/better-sqlite3 install: gyp ERR! find VS **************************************************************
+.../node_modules/better-sqlite3 install: gyp ERR! find VS You need to install the latest version of Visual Studio
+.../node_modules/better-sqlite3 install: gyp ERR! find VS including the "Desktop development with C++" workload.
+.../node_modules/better-sqlite3 install: gyp ERR! find VS For more information consult the documentation at:
+.../node_modules/better-sqlite3 install: gyp ERR! find VS https://github.com/nodejs/node-gyp#on-windows
+.../node_modules/better-sqlite3 install: gyp ERR! find VS **************************************************************
+.../node_modules/better-sqlite3 install: gyp ERR! find VS 
+.../node_modules/better-sqlite3 install: gyp ERR! configure error 
+.../node_modules/better-sqlite3 install: gyp ERR! stack Error: Could not find any Visual Studio installation to use
+.../node_modules/better-sqlite3 install: gyp ERR! stack at VisualStudioFinder.fail (C:\Users\runneradmin\setup-pnpm\node_modules\.pnpm\pnpm@10.34.5\node_modules\pnpm\dist\node_modules\node-gyp\lib\find-visualstudio.js:118:11)
+.../node_modules/better-sqlite3 install: gyp ERR! stack at VisualStudioFinder.findVisualStudio (C:\Users\runneradmin\setup-pnpm\node_modules\.pnpm\pnpm@10.34.5\node_modules\pnpm\dist\node_modules\node-gyp\lib\find-visualstudio.js:74:17)
+.../node_modules/better-sqlite3 install: gyp ERR! stack at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+.../node_modules/better-sqlite3 install: gyp ERR! stack at async createBuildDir (C:\Users\runneradmin\setup-pnpm\node_modules\.pnpm\pnpm@10.34.5\node_modules\pnpm\dist\node_modules\node-gyp\lib\configure.js:112:18)
+.../node_modules/better-sqlite3 install: gyp ERR! stack at async run (C:\Users\runneradmin\setup-pnpm\node_modules\.pnpm\pnpm@10.34.5\node_modules\pnpm\dist\node_modules\node-gyp\bin\node-gyp.js:81:18)
+.../node_modules/better-sqlite3 install: gyp ERR! System Windows_NT 10.0.26100
+.../node_modules/better-sqlite3 install: gyp ERR! command "C:\\hostedtoolcache\\windows\\node\\24.18.0\\x64\\node.exe" "C:\\Users\\runneradmin\\setup-pnpm\\node_modules\\.pnpm\\pnpm@10.34.5\\node_modules\\pnpm\\dist\\node_modules\\node-gyp\\bin\\node-gyp.js" "rebuild" "--release"
+.../node_modules/better-sqlite3 install: gyp ERR! cwd D:\a\Material-Evidence-Manager\Material-Evidence-Manager\node_modules\.pnpm\better-sqlite3@9.6.0\node_modules\better-sqlite3
+.../node_modules/better-sqlite3 install: gyp ERR! node -v v24.18.0
+.../node_modules/better-sqlite3 install: gyp ERR! node-gyp -v v11.5.0
+.../node_modules/better-sqlite3 install: gyp ERR! not ok 
+.../node_modules/better-sqlite3 install: Failed
+ ELIFECYCLE  Command failed with exit code 1.
+Error: Process completed with exit code 1.
