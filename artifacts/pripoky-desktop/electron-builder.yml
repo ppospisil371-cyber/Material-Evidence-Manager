@@ -1,0 +1,43 @@
+appId: cz.evidence-pripojek
+productName: Evidence přípojek
+copyright: Copyright © 2024
+
+directories:
+  output: release
+  buildResources: build-resources
+
+files:
+  - dist/**
+  - package.json
+  - "!node_modules/**"
+  - node_modules/better-sqlite3/**
+  - node_modules/pdfkit/**
+  - node_modules/fontkit/**
+  - node_modules/brotli/**
+  - node_modules/bindings/**
+  - node_modules/file-uri-to-path/**
+
+extraResources:
+  - from: assets/fonts
+    to: fonts
+  - from: renderer
+    to: renderer
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Evidence přípojek
+
+npmRebuild: true
+nodeGypRebuild: false
+
+asar: true
