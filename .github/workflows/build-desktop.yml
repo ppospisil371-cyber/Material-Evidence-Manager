@@ -18,12 +18,11 @@ jobs:
         run: pnpm --filter @workspace/pripoky-app run build
         env:
           BASE_PATH: /
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Rebuild better-sqlite3 for Electron
         working-directory: artifacts/pripoky-desktop
         run: pnpm exec electron-rebuild -f -w better-sqlite3
-        env:
-          GYP_MSVS_VERSION: "2022"
-          PYTHON: "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe"
       - name: Build Electron main
         working-directory: artifacts/pripoky-desktop
         run: node build.mjs
