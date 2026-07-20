@@ -23,6 +23,7 @@
     "@types/express": "^5.0.6",
     "@types/pdfkit": "^0.17.6",
     "@types/node": "catalog:",
+    "@electron/rebuild": "^3.7.1",
     "electron": "^32.2.7",
     "electron-builder": "^25.1.8",
     "esbuild": "0.27.3",
