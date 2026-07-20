@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@workspace/api-zod": "workspace:*",
-    "better-sqlite3": "^9.6.0",
+    "better-sqlite3": "^12.11.1",
     "cors": "^2.8.6",
     "drizzle-orm": "catalog:",
     "express": "^5.2.1",
