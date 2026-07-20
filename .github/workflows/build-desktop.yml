@@ -1,0 +1,36 @@
+name: Build Desktop App (.exe)
+on:
+  workflow_dispatch:
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build frontend
+        run: pnpm --filter @workspace/pripoky-app run build
+        env:
+          BASE_PATH: /
+      - name: Rebuild better-sqlite3 for Electron
+        working-directory: artifacts/pripoky-desktop
+        run: pnpm exec electron-rebuild -f -w better-sqlite3
+      - name: Build Electron main
+        working-directory: artifacts/pripoky-desktop
+        run: node build.mjs
+      - name: Package .exe
+        working-directory: artifacts/pripoky-desktop
+        run: npx electron-builder --win --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evidence-pripojek-windows
+          path: artifacts/pripoky-desktop/release/*.exe
+          if-no-files-found: error
