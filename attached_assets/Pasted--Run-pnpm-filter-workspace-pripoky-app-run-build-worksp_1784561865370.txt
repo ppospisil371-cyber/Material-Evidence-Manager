@@ -1,0 +1,22 @@
+
+Run pnpm --filter @workspace/pripoky-app run build
+
+> @workspace/pripoky-app@0.0.0 build D:\a\Material-Evidence-Manager\Material-Evidence-Manager\artifacts\pripoky-app
+> vite build --config vite.config.ts
+
+failed to load config from D:\a\Material-Evidence-Manager\Material-Evidence-Manager\artifacts\pripoky-app\vite.config.ts
+error during build:
+Error: PORT environment variable is required but was not provided.
+    at file:///D:/a/Material-Evidence-Manager/Material-Evidence-Manager/artifacts/pripoky-app/node_modules/.vite-temp/vite.config.ts.timestamp-1784561829148-ab71c1cabea148.mjs:10:9
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async loadConfigFromBundledFile (file:///D:/a/Material-Evidence-Manager/Material-Evidence-Manager/node_modules/.pnpm/vite@7.3.3_@types+node@25.6_ae3e33f3fe335111b5390f6db5b643d9/node_modules/vite/dist/node/chunks/config.js:35936:12)
+    at async bundleAndLoadConfigFile (file:///D:/a/Material-Evidence-Manager/Material-Evidence-Manager/node_modules/.pnpm/vite@7.3.3_@types+node@25.6_ae3e33f3fe335111b5390f6db5b643d9/node_modules/vite/dist/node/chunks/config.js:35824:17)
+    at async loadConfigFromFile (file:///D:/a/Material-Evidence-Manager/Material-Evidence-Manager/node_modules/.pnpm/vite@7.3.3_@types+node@25.6_ae3e33f3fe335111b5390f6db5b643d9/node_modules/vite/dist/node/chunks/config.js:35791:42)
+    at async resolveConfig (file:///D:/a/Material-Evidence-Manager/Material-Evidence-Manager/node_modules/.pnpm/vite@7.3.3_@types+node@25.6_ae3e33f3fe335111b5390f6db5b643d9/node_modules/vite/dist/node/chunks/config.js:35440:22)
+    at async createBuilder (file:///D:/a/Material-Evidence-Manager/Material-Evidence-Manager/node_modules/.pnpm/vite@7.3.3_@types+node@25.6_ae3e33f3fe335111b5390f6db5b643d9/node_modules/vite/dist/node/chunks/config.js:33895:19)
+    at async CAC.<anonymous> (file:///D:/a/Material-Evidence-Manager/Material-Evidence-Manager/node_modules/.pnpm/vite@7.3.3_@types+node@25.6_ae3e33f3fe335111b5390f6db5b643d9/node_modules/vite/dist/node/cli.js:629:10)
+D:\a\Material-Evidence-Manager\Material-Evidence-Manager\artifacts\pripoky-app:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @workspace/pripoky-app@0.0.0 build: `vite build --config vite.config.ts`
+Exit status 1
+Error: Process completed with exit code 1.
